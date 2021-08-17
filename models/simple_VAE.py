@@ -4,9 +4,9 @@ import torch
 import torch.utils.data
 from torch import nn, optim
 from torch.nn import functional as F
-from torchvision import datasets, transforms
-from torchvision.utils import save_image
-import matplotlib.pyplot as plt
+#from torchvision import datasets, transforms
+#from torchvision.utils import save_image
+#import matplotlib.pyplot as plt
 from time import sleep
 import numpy as np
 
@@ -94,6 +94,7 @@ def loss_function(recon_x, x, mu, logvar):
     # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
     KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
     KLD /= x.view(-1, 14).data.shape[0] * 14
+   
     
     return BCE + KLD
 
