@@ -11,22 +11,7 @@ from time import sleep
 import numpy as np
 
 
-#parser = argparse.ArgumentParser(description='VAE MNIST Example')
-#parser.add_argument('--batch-size', type=int, default=128, metavar='N',
-                    #help='input batch size for training (default: 128)')
-#parser.add_argument('--epochs', type=int, default=10, metavar='N',
-                    #help='number of epochs to train (default: 10)')
-#parser.add_argument('--no-cuda', action='store_true', default=False,
-                    #help='disables CUDA training')
-#parser.add_argument('--seed', type=int, default=1, metavar='S',
-                    #help='random seed (default: 1)')
-#parser.add_argument('--log-interval', type=int, default=10, metavar='N',
-                    #help='how many batches to wait before logging training status')
-#args = parser.parse_args()
-#args.cuda = not args.no_cuda and torch.cuda.is_available()
 
-# batch_size = 128
-# epochs     = 10
 
 """ 
 torch.manual_seed(999)
@@ -56,6 +41,8 @@ class VAE(nn.Module):
         self.fc31 = nn.Linear(200, 300)
         self.fc32 = nn.Linear(300, 400)
         self.fc4 = nn.Linear(400, self.input_dim)
+        self.mu = None
+        self.logvar = None
 
     def encode(self, x):
         h1 = F.relu(self.fc1(x))
@@ -75,28 +62,29 @@ class VAE(nn.Module):
         return torch.sigmoid(self.fc4(h5))
 
     def forward(self, x):
-        mu, logvar = self.encode(x.view(-1, self.input_dim))
-        z = self.reparam(mu, logvar)
-        return self.decode(z), mu, logvar
+        self.mu, self.logvar = self.encode(x.view(-1, self.input_dim))
+        z = self.reparam(self.mu, self.logvar)
+        return self.decode(z), self.mu, self.logvar
+
+
+    # Reconstruction + KL divergence losses summed over all elements and batch
+    def loss(self,recon_x, x):
+        BCE = F.binary_cross_entropy(recon_x, x.view(-1,self.input_dim), reduction='sum')
+
+        # see Appendix B from VAE paper:
+        # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
+        # https://arxiv.org/abs/1312.6114
+        # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
+        KLD = -0.5 * torch.sum(1 + self.logvar - self.mu.pow(2) - self.logvar.exp())
+        KLD /= x.view(-1, self.input_dim).data.shape[0] * self.input_dim
+        return BCE + KLD
 
 
 # """ model = VAE().to(device)
 # optimizer = optim.Adam(model.parameters(), lr=1e-3)
 #  """
 
-# Reconstruction + KL divergence losses summed over all elements and batch
-def loss_function(recon_x, x, mu, logvar):
-    BCE = F.binary_cross_entropy(recon_x, x.view(-1,232), reduction='sum')
 
-    # see Appendix B from VAE paper:
-    # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
-    # https://arxiv.org/abs/1312.6114
-    # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
-    KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-    KLD /= x.view(-1, 232).data.shape[0] * 232
-   
-    
-    return BCE + KLD
 
 
     
