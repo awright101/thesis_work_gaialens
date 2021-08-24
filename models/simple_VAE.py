@@ -33,14 +33,14 @@ class VAE(nn.Module):
         super(VAE, self).__init__()
         self.input_dim = num_feats
         self.fc1 = nn.Linear(self.input_dim, 400)
-        self.fc11 = nn.Linear(400, 300)
-        self.fc12 = nn.Linear(300, 200)
-        self.fc21 = nn.Linear(200, latent_dims)
-        self.fc22 = nn.Linear(200, latent_dims)
-        self.fc3 = nn.Linear(latent_dims, 200)
-        self.fc31 = nn.Linear(200, 300)
-        self.fc32 = nn.Linear(300, 400)
-        self.fc4 = nn.Linear(400, self.input_dim)
+        self.fc11 = nn.Linear(20, 10)
+        self.fc12 = nn.Linear(10, 5)
+        self.fc21 = nn.Linear(5, latent_dims)
+        self.fc22 = nn.Linear(5, latent_dims)
+        self.fc3 = nn.Linear(latent_dims, 5)
+        self.fc31 = nn.Linear(5, 10)
+        self.fc32 = nn.Linear(10, 20)
+        self.fc4 = nn.Linear(20, self.input_dim)
         self.mu = None
         self.logvar = None
 
