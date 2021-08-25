@@ -32,7 +32,7 @@ class VAE(nn.Module):
     def __init__(self,num_feats,latent_dims):
         super(VAE, self).__init__()
         self.input_dim = num_feats
-        self.fc1 = nn.Linear(self.input_dim, 400)
+        self.fc1 = nn.Linear(self.input_dim, 20)
         self.fc11 = nn.Linear(20, 10)
         self.fc12 = nn.Linear(10, 5)
         self.fc21 = nn.Linear(5, latent_dims)
