@@ -21,33 +21,28 @@ torch.manual_seed(999)
 
 device = torch.device("cpu")
  """
-#kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
-# train_loader = torch.utils.data.DataLoader(
-#     datasets.MNIST('../data', train=True, download=True,
-#                    transform=transforms.ToTensor()),
-#     batch_size=batch_size, shuffle=True, **kwargs)
-# test_loader = torch.utils.data.DataLoader(
-#     datasets.MNIST('../data', train=False, transform=transforms.ToTensor()),
-#     batch_size=batch_size, shuffle=True, **kwargs)
 
-
-class VAE(nn.Module):
+class BETA_VAE(nn.Module):
 
     """
-    FUCK
+    Docstring for VAE
+    
     """
 
 
 
-    def __init__(self,num_feats,latent_dims,hidden_dims):
-        super(VAE, self).__init__()
+    def __init__(self,num_feats,latent_dims,hidden_dims,beta=2):
+        super(BETA_VAE, self).__init__()
         self.input_dim = num_feats
         self.latent_dims = latent_dims
+        self.beta = beta
+        self.mu = None
+        self.logvar = None
 
         #BUILD ENCODER
         modules = []
         dim_in = self.input_dim
-
+        
         for l_size in hidden_dims:
             modules.append(nn.Sequential(
                 nn.Linear(dim_in,l_size),
@@ -62,7 +57,9 @@ class VAE(nn.Module):
 
         #BUILD DECODER 
         modules = []
+        
         hidden_dims.reverse()
+        
         dim_in = self.latent_dims
 
         for l_size in hidden_dims:
@@ -73,7 +70,7 @@ class VAE(nn.Module):
             dim_in = l_size
 
         self.decoder    = nn.Sequential(*modules)
-        self.recon     = nn.Linear(hidden_dims[0],self.input_dim)
+        self.recon     = nn.Linear(hidden_dims[-1],self.input_dim)
        
             
 
@@ -81,14 +78,17 @@ class VAE(nn.Module):
 
 
     def encode(self, x):
-   
-        return 
+        mu = self.for_mu(self.encoder(x.view(-1, self.input_dim)))
+        logvar = self.for_logvar(self.encoder(x))
+        return mu,logvar
     
     def decode(self, z):
-        h3 = F.relu(self.fc3(z))
-        h4 = F.relu(self.fc31(h3))
-        h5 = F.relu(self.fc32(h4))
-        return torch.sigmoid(self.fc4(h5))
+        
+        temp = self.decoder(z)
+        temp = self.recon(temp)
+
+
+        return torch.sigmoid(temp)
 
     def reparam(self, mu, logvar):
         std = torch.exp(0.5*logvar)
@@ -98,7 +98,7 @@ class VAE(nn.Module):
     
 
     def forward(self, x):
-        self.mu, self.logvar = self.encode(x.view(-1, self.input_dim))
+        self.mu, self.logvar = self.encode(x)
         z = self.reparam(self.mu, self.logvar)
         return self.decode(z), self.mu, self.logvar
 
@@ -113,7 +113,7 @@ class VAE(nn.Module):
         # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
         KLD = -0.5 * torch.sum(1 + self.logvar - self.mu.pow(2) - self.logvar.exp())
         KLD /= x.view(-1, self.input_dim).data.shape[0] * self.input_dim
-        return BCE + KLD
+        return BCE + self.beta*KLD
 
 
 # """ model = VAE().to(device)
@@ -121,15 +121,17 @@ class VAE(nn.Module):
 #  """
 
 if __name__ == "__main__":
+    print()
+    print()
+    print()
+    x = torch.FloatTensor([i for i in range(10)])
+    model = BETA_VAE(10,2,[200],beta=2)
+
+    reconx,_,_ = model(x)
+    print(model.loss(reconx,x))
     
 
-    model = VAE(10,2,[2,3,5,6])
-    print(model.encoder)
-    print(model.decoder)
 
-
-    print(torch.sum.__doc__)
-   
    
 
     
