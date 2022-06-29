@@ -125,7 +125,7 @@ if __name__ == "__main__":
     print()
     print()
     x = torch.FloatTensor([i for i in range(10)])
-    model = BETA_VAE(10,2,[200],beta=2)
+    model = BETA_VAE(10,2,[200,2,3,6],beta=2)
 
     reconx,_,_ = model(x)
     print(model.loss(reconx,x))
